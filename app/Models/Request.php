@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Request extends Model
 {
-    public const REQUEST_CREATED = 'created';
-    public const REQUEST_IN_PROCESS = 'created';
+    public const  REQUEST_CREATED = 'created';
+    public const REQUEST_IN_PROCESS = 'in_process';
     public const REQUEST_ACCEPTED = 'accepted';
     public const REQUEST_REJECTED = 'rejected';
 
