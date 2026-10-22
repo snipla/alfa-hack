@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Requests;
 use App\Filament\Resources\Requests\Pages\CreateRequest;
 use App\Filament\Resources\Requests\Pages\EditRequest;
 use App\Filament\Resources\Requests\Pages\ListRequests;
+use App\Filament\Resources\Requests\Pages\ManageRequests;
 use App\Filament\Resources\Requests\Pages\ViewRequest;
 use App\Filament\Resources\Requests\Schemas\RequestForm;
 use App\Filament\Resources\Requests\Schemas\RequestInfolist;
@@ -51,6 +52,7 @@ class RequestResource extends Resource
             'create' => CreateRequest::route('/create'),
             'view' => ViewRequest::route('/{record}'),
             'edit' => EditRequest::route('/{record}/edit'),
+            'manage' => ManageRequests::route('/manage/{record}/'),
         ];
     }
 }
