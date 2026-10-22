@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Requests\Tables;
 
+use App\Filament\Resources\Requests\Pages\ManageRequests;
 use App\Models\Request;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -58,10 +59,18 @@ class RequestsTable
                 ViewAction::make(),
                 Action::make('take_on_work')
                     ->icon('heroicon-o-pencil')
-                    ->label('Взять в обработку')
+                    ->label(fn($record): string => match ($record->status) {
+                        Request::REQUEST_CREATED => 'Взять на рассмотрение',
+                        Request::REQUEST_IN_PROCESS => 'Продолжить рассмотрение',
+                    })
+                    ->visible(fn($record) => $record->status == Request::REQUEST_CREATED || $record->status ==
+                        Request::REQUEST_IN_PROCESS)
                     ->action(function ($record) {
                         $record->status = Request::REQUEST_IN_PROCESS;
                         $record->save();
+                    })
+                    ->action(function ($record) {
+                        redirect(ManageRequests::getUrl(['record' => $record->id]));
                     })
                     ->requiresConfirmation()
                     ->modalIcon('heroicon-o-question-mark-circle')
