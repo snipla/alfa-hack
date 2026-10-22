@@ -44,6 +44,7 @@ class ManageRequests extends EditRecord
                 ->action(function ($record) {
                     $record->status = Request::REQUEST_ACCEPTED;
                     $record->save();
+                    redirect(RequestResource::getUrl());
                     //dd('Одобрено!');
                 }),
             Action::make('reject')
@@ -58,6 +59,7 @@ class ManageRequests extends EditRecord
                 ->action(function ($record) {
                     $record->status = Request::REQUEST_REJECTED;
                     $record->save();
+                    redirect(RequestResource::getUrl());
                     //dd('Отклонено!');
                 }),
 //            $this->getSaveFormAction()
