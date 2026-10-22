@@ -15,9 +15,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 
 class RequestsTable
 {
+    protected static ?string $breadcrumb = 'Все пользователи';
+
     public static function configure(Table $table): Table
     {
         return $table
@@ -54,11 +57,11 @@ class RequestsTable
                     ->dateTime('M d Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Обновлена')
-                    ->dateTime('M d Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+//                TextColumn::make('updated_at')
+//                    ->label('Обновлена')
+//                    ->dateTime('M d Y H:i')
+//                    ->sortable()
+//                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
                 ViewAction::make(),
