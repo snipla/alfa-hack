@@ -15,7 +15,8 @@ class Request extends Model
     public $fillable = [
         'user_id',
         'status',
-        'credit_info'
+        'credit_info',
+        'admin_comment'
     ];
 
     public function user(): BelongsTo

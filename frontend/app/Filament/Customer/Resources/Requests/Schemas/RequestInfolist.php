@@ -14,6 +14,7 @@ class RequestInfolist
                 TextEntry::make('user_id')
                     ->numeric(),
                 TextEntry::make('status'),
+                TextEntry::make('admin_comment'),
                 TextEntry::make('credit_info')
                     ->placeholder('-')
                     ->columnSpanFull(),
