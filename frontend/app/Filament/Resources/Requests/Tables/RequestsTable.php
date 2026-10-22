@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Icon;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class RequestsTable
@@ -72,8 +73,6 @@ class RequestsTable
                     ->action(function ($record) {
                         $record->status = Request::REQUEST_IN_PROCESS;
                         $record->save();
-                    })
-                    ->action(function ($record) {
                         redirect(ManageRequests::getUrl(['record' => $record->id]));
                     })
                     ->requiresConfirmation()
@@ -83,6 +82,16 @@ class RequestsTable
                     ->modalSubmitActionLabel('Да, рассмотреть') // Текст кнопки подтверждения
                     ->color('info'),
                 EditAction::make(),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label('Статус')
+                    ->options([
+                        Request::REQUEST_CREATED => 'Создана',
+                        Request::REQUEST_IN_PROCESS => 'На рассмотрении',
+                        Request::REQUEST_ACCEPTED => 'Одобрена',
+                        Request::REQUEST_REJECTED => 'Отклонена',
+                    ])
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
