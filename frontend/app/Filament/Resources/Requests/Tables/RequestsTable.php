@@ -91,6 +91,7 @@ class RequestsTable
             ->filters([
                 SelectFilter::make('status')
                     ->label('Статус')
+                    ->multiple()
                     ->options([
                         Request::REQUEST_CREATED => 'Создана',
                         Request::REQUEST_IN_PROCESS => 'На рассмотрении',
