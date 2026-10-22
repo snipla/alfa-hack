@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Requests\Schemas;
 
+use App\Models\Request;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
@@ -15,9 +17,19 @@ class RequestForm
                 TextInput::make('user_id')
                     ->required()
                     ->numeric(),
-                TextInput::make('status')
+                Select::make('status')
+                    ->options([
+                        Request::REQUEST_CREATED => 'Отправлено',
+                        Request::REQUEST_IN_PROCESS => 'В обработке',
+                        Request::REQUEST_ACCEPTED => 'Принято',
+                        Request::REQUEST_REJECTED => 'Отклонено',
+
+                    ])
                     ->required()
-                    ->default('created'),
+                    ->default(Request::REQUEST_IN_PROCESS),
+//                TextInput::make('status')
+//                    ->required()
+//                    ->default('created'),
                 Textarea::make('credit_info')
                     ->default(null)
                     ->columnSpanFull(),

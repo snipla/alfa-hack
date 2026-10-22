@@ -25,6 +25,10 @@ class RequestsTable
                     ->label('ID заявки')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('user.name')
+                    ->label('Имя пользователя')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('status')
                     ->label('Статус заявки')
                     ->badge()
