@@ -11,6 +11,7 @@ class Request extends Model
     public const REQUEST_IN_PROCESS = 'in_process';
     public const REQUEST_ACCEPTED = 'accepted';
     public const REQUEST_REJECTED = 'rejected';
+    public const CONTRACT_SIGNED = 'signed';
 
     public $fillable = [
         'user_id',
