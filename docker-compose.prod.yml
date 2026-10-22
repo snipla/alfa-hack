@@ -1,0 +1,92 @@
+x-app: &app
+  restart: unless-stopped
+  init: true
+  security_opt: ["no-new-privileges:true"]
+
+x-service: &service
+  <<: *app
+  cap_drop: [ALL]
+
+x-ping: &ping
+  test:
+    - CMD
+    - python
+    - -c
+    - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/system/ping', timeout=3).read()"
+  interval: 30s
+  timeout: 5s
+  retries: 5
+  start_period: 40s
+
+x-ping-php: &ping-php
+  test:
+    - CMD
+    - php
+    - -r
+    - "exit(@file_get_contents('http://127.0.0.1:8000/up', false, stream_context_create(['http' => ['timeout' => 3]])) === false ? 1 : 0);"
+  interval: 30s
+  timeout: 5s
+  retries: 5
+  start_period: 40s
+
+name: prod
+
+services:
+  backend:
+    <<: *service
+    build:
+      context: ./backend
+      target: prod
+    env_file: ./backend/.env
+    depends_on:
+      backend-ml:
+        condition: service_healthy
+    volumes:
+      - /opt/alfa/prod/migrations:/app/.alembic/versions
+    healthcheck: *ping
+    deploy:
+      resources:
+        limits: {cpus: "1.0", memory: 1g}
+    networks: [prod-app, app-infra]
+
+  backend-ml:
+    <<: *service
+    build:
+      context: ./backend-ml
+      target: prod
+    env_file: ./backend-ml/.env
+    healthcheck: *ping
+    deploy:
+      resources:
+        limits: {cpus: "2.0", memory: 2g}
+    networks: [prod-app]
+
+  php-frontend:
+    <<: *service
+    build:
+      context: ./frontend
+      target: prod
+    env_file: ./frontend/.env
+    environment:
+      OCTANE_WORKERS: 2
+      OCTANE_TASK_WORKERS: 1
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck: *ping-php
+    deploy:
+      resources:
+        limits: {cpus: "1.0", memory: 512m}
+    networks: [prod-app, web-server]
+
+networks:
+  prod-app:
+    name: alfahack-prod-app
+    internal: true
+    driver: bridge
+  app-infra:
+    name: alfahack-infra
+    external: true
+  web-server:
+    name: alfahack-web
+    external: true

@@ -1,0 +1,55 @@
+x-base: &base
+  restart: unless-stopped
+  init: true
+  security_opt: ["no-new-privileges:true"]
+
+secrets:
+  mariadb_root_password:
+    file: /opt/alfa/secrets/mariadb_root_password
+  mariadb_password:
+    file: /opt/alfa/secrets/mariadb_password
+
+services:
+  db:
+    <<: *base
+    image: mariadb:${MARIADB_TAG:?}
+    container_name: frisbee-db
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    command:
+      - --innodb-buffer-pool-size=${MARIADB_BUFFER_POOL:-512M}
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --performance-schema=ON
+      - --slow-query-log=ON
+      - --long-query-time=0.5
+    environment:
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/mariadb_root_password
+      MARIADB_USER: ${MARIADB_USER:?}
+      MARIADB_PASSWORD_FILE: /run/secrets/mariadb_password
+      MARIADB_DATABASE: frisbee_prod
+    secrets: [mariadb_root_password, mariadb_password]
+    volumes:
+      - /opt/alfa/mariadb:/var/lib/mysql
+      - /opt/alfa/conf/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits: {cpus: "2.0", memory: 1.5g}
+    networks: 
+      - app-infra
+    ports:
+      - "127.0.0.1:13306:3306"
+
+networks:
+  app-infra:
+    name: alfahack-infra
+    driver: bridge
+  web-server:
+    name: alfahack-web
+    external: true

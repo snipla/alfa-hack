@@ -1,0 +1,20 @@
+name: alfahack
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/alfa/conf/nginx:/etc/nginx/conf.d:ro
+      - /opt/alfa/certs:/etc/nginx/certs:ro
+    networks:
+      - web-server
+
+networks:
+  web-server:
+    name: alfahack-web
+    driver: bridge

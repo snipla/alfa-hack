@@ -1,0 +1,102 @@
+x-dev: &dev
+  restart: "no"
+  init: true
+  security_opt: ["no-new-privileges:true"]
+
+x-ping: &ping
+  test:
+    - CMD
+    - python
+    - -c
+    - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/system/ping', timeout=3).read()"
+  interval: 30s
+  timeout: 5s
+  retries: 5
+  start_period: 10s
+
+x-ping-php: &ping-php
+  test:
+    - CMD
+    - php
+    - -r
+    - "exit(@file_get_contents('http://127.0.0.1:8000/up', false, stream_context_create(['http' => ['timeout' => 3]])) === false ? 1 : 0);"
+  interval: 30s
+  timeout: 5s
+  retries: 5
+  start_period: 10s
+
+name: dev
+
+services:
+  backend: 
+    <<: *dev
+    env_file:
+      - ./backend/.env.dev
+    build:
+      context: ./backend
+      target: development
+    develop:
+      watch:
+        - {action: sync, path: ./backend, target: /app, ignore: [.venv/, __pycache__/, .pytest_cache/]}
+        - {action: rebuild, path: ./backend/pyproject.toml}
+        - {action: rebuild, path: ./backend/uv.lock}
+        - {action: rebuild, path: ./backend/.env.dev}
+    healthcheck: *ping
+    depends_on:
+      backend-ml:
+        condition: service_healthy
+    volumes:
+      - /opt/alfa/dev/migrations:/app/.alembic/versions
+    networks:
+      - dev-app
+      - app-infra
+
+  backend-ml:
+    <<: *dev
+    env_file:
+      - ./backend-ml/.env.dev
+    build:
+      context: ./backend-ml
+      target: development
+    develop:
+    watch:
+      - {action: sync, path: ./backend-ml, target: /app, ignore: [.venv/, __pycache__/, .pytest_cache/]}
+      - {action: rebuild, path: ./backend-ml/pyproject.toml}
+      - {action: rebuild, path: ./backend-ml/uv.lock}
+      - {action: rebuild, path: ./backend-ml/.env.dev}
+    healthcheck: *ping
+    networks:
+      - dev-app
+
+  php-frontend:
+    <<: *dev
+    env_file:
+      - ./frontend/.env.dev
+    build:
+      context: ./frontend
+      target: development
+    develop:
+      watch:
+        - {action: sync, path: ./frontend, target: /app, ignore: [vendor/, node_modules/, storage/logs/, storage/framework/, bootstrap/cache/]}
+        - {action: rebuild, path: ./frontend/composer.json}
+        - {action: rebuild, path: ./frontend/composer.lock}
+        - {action: rebuild, path: ./frontend/.env.dev}
+    healthcheck: *ping-php
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - dev-app
+      - web-server
+
+networks:
+  dev-app:
+    name: alfahack-dev-app
+    internal: true
+  app-infra:
+    name: alfahack-infra
+    external: true
+  web-server:
+    name: alfahack-web
+    external: true
+  
