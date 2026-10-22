@@ -11,4 +11,4 @@ make dev
 make prod-build
 ```
 
-> dev by @shtrmx @sht0rmeed @artemepp @YarKhim @Nikola-san
+> dev by @shtrmx @st0rmeed @artemepp @YarKhim @Nikola-san

@@ -126,3 +126,7 @@ multirun/
 /.dvc/cache
 /.dvc/tmp
 /.dvc/config.local
+
+
+# --- ML Data ---
+**/data/*
