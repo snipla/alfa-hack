@@ -9,8 +9,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /opt/alfa/conf/nginx:/etc/nginx/conf.d:ro
-      - /opt/alfa/certs:/etc/nginx/certs:ro
+      - /opt/alfa/nginx:/etc/nginx/conf.d:ro
+      - /opt/alfa/nginx/certs:/etc/nginx/certs:ro
     networks:
       - web-server
 

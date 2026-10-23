@@ -31,7 +31,7 @@ services:
     secrets: [mariadb_root_password, mariadb_password]
     volumes:
       - /opt/alfa/mariadb:/var/lib/mysql
-      - /opt/alfa/conf/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - /opt/alfa/config/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
