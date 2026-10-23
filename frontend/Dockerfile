@@ -36,7 +36,9 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/composer \
     composer dump-autoload --no-scripts \
     && php artisan package:discover --ansi \
-    && php artisan filament:assets
+    && php artisan filament:assets \
+    && php artisan make:filament-theme \
+    && php artisan optimize:clear
 
 EXPOSE 8000
 
@@ -56,11 +58,13 @@ RUN --mount=type=cache,target=/root/.cache/composer \
     composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts \
     && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && php artisan package:discover --ansi \
+    && php artisan make:filament-theme \
     && php artisan filament:assets \
+    && php artisan optimize:clear \
     && chown -R www-data:www-data storage bootstrap/cache public
 
 USER www-data
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "php artisan optimize && exec php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000 --workers=auto --task-workers=auto --max-requests=500"]
+CMD ["sh", "-c", "exec php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000 --workers=auto --task-workers=auto --max-requests=500"]
