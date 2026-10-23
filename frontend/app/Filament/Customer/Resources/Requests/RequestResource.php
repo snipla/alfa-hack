@@ -20,7 +20,8 @@ class RequestResource extends Resource
 {
     protected static ?string $model = Request::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $pluralModelLabel = 'Заявки на кредит';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
 
     public static function form(Schema $schema): Schema
     {

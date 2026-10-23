@@ -33,6 +33,7 @@ class RequestsTable
                         Request::REQUEST_IN_PROCESS => 'info',
                         Request::REQUEST_ACCEPTED => 'success',
                         Request::REQUEST_REJECTED => 'danger',
+                        Request::CONTRACT_SIGNED => 'secondary',
                         default => 'primary',
                     })
                     ->formatStateUsing(fn($record): string => match ($record->status) {
@@ -40,6 +41,7 @@ class RequestsTable
                         Request::REQUEST_IN_PROCESS => 'На рассмотрении',
                         Request::REQUEST_ACCEPTED => 'Одобрена',
                         Request::REQUEST_REJECTED => 'Отклонена',
+                        Request::CONTRACT_SIGNED => 'Договор подписан',
                         default => 'primary',
                     })
                     ->size(TextSize::Large)

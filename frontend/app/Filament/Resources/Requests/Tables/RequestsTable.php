@@ -13,16 +13,24 @@ use Filament\Schemas\Components\Icon;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 
 class RequestsTable
 {
+    protected static ?string $breadcrumb = 'Все пользователи';
+
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('id')
                     ->label('ID заявки')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('user.name')
+                    ->label('Имя пользователя')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('status')
@@ -33,6 +41,7 @@ class RequestsTable
                         Request::REQUEST_IN_PROCESS => 'info',
                         Request::REQUEST_ACCEPTED => 'success',
                         Request::REQUEST_REJECTED => 'danger',
+                        Request::CONTRACT_SIGNED => 'secondary',
                         default => 'primary',
                     })
                     ->formatStateUsing(fn($record): string => match ($record->status) {
@@ -40,6 +49,7 @@ class RequestsTable
                         Request::REQUEST_IN_PROCESS => 'На рассмотрении',
                         Request::REQUEST_ACCEPTED => 'Одобрена',
                         Request::REQUEST_REJECTED => 'Отклонена',
+                        Request::CONTRACT_SIGNED => 'Договор подписан',
                         default => 'primary',
                     })
                     ->size(TextSize::Large)
@@ -49,11 +59,11 @@ class RequestsTable
                     ->dateTime('M d Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Обновлена')
-                    ->dateTime('M d Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+//                TextColumn::make('updated_at')
+//                    ->label('Обновлена')
+//                    ->dateTime('M d Y H:i')
+//                    ->sortable()
+//                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
                 ViewAction::make(),
@@ -68,8 +78,6 @@ class RequestsTable
                     ->action(function ($record) {
                         $record->status = Request::REQUEST_IN_PROCESS;
                         $record->save();
-                    })
-                    ->action(function ($record) {
                         redirect(ManageRequests::getUrl(['record' => $record->id]));
                     })
                     ->requiresConfirmation()
@@ -79,6 +87,18 @@ class RequestsTable
                     ->modalSubmitActionLabel('Да, рассмотреть') // Текст кнопки подтверждения
                     ->color('info'),
                 EditAction::make(),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label('Статус')
+                    ->multiple()
+                    ->options([
+                        Request::REQUEST_CREATED => 'Создана',
+                        Request::REQUEST_IN_PROCESS => 'На рассмотрении',
+                        Request::REQUEST_ACCEPTED => 'Одобрена',
+                        Request::REQUEST_REJECTED => 'Отклонена',
+                        Request::CONTRACT_SIGNED => 'Договор подписан',
+                    ])
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
