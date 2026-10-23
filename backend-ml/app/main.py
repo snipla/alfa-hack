@@ -7,7 +7,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from scalar_fastapi import Theme, add_scalar_reference
 
-from app.routers import system
+from app.routers import model, system
 from app.services.model import model_lifespan
 from app.shared.config import settings
 from app.shared.logging import init_app_logging
@@ -61,5 +61,6 @@ app.add_middleware(
 
 router = APIRouter(prefix="/api")
 router.include_router(system.router)
+router.include_router(model.router)
 
 app.include_router(router)
