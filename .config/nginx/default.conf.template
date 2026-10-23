@@ -2,13 +2,13 @@ server {
     listen 443 ssl default_server;
     listen [::]:443 ssl default_server;
     server_name _;
-    
+
     include /etc/nginx/conf.d/snippets/ssl-params.conf;
     ssl_reject_handshake on;
 }
 
 server {
     listen 80;
-    server_name *.shtrmx.ru shtrmx.ru;
+    server_name *.${DOMAIN} ${DOMAIN};
     return 301 https://$host$request_uri;
 }

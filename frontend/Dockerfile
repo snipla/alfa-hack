@@ -2,7 +2,7 @@
 ARG PHP_VERSION=8.4
 FROM php:${PHP_VERSION}-cli AS base
 
-ARG PHP_EXTENSIONS="intl zip opcache pcntl pdo_pgsql redis swoole"
+ARG PHP_EXTENSIONS="intl zip opcache pcntl pdo_mysql redis swoole"
 
 RUN apt-get update \
     && apt-get upgrade -y --no-install-recommends \
@@ -34,11 +34,13 @@ RUN --mount=type=cache,target=/root/.cache/composer \
 COPY . .
 
 RUN --mount=type=cache,target=/root/.cache/composer \
-    composer dump-autoload --no-scripts
+    composer dump-autoload --no-scripts \
+    && php artisan package:discover --ansi \
+    && php artisan filament:assets
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000", "--no-reload"]
 
 # Deploying at production server
 FROM base AS prod
@@ -53,7 +55,9 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/composer \
     composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts \
     && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && php artisan package:discover --ansi \
+    && php artisan filament:assets \
+    && chown -R www-data:www-data storage bootstrap/cache public
 
 USER www-data
 

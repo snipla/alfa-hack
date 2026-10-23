@@ -15,8 +15,9 @@ x-ping: &ping
     - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/system/ping', timeout=3).read()"
   interval: 30s
   timeout: 5s
-  retries: 5
-  start_period: 40s
+  retries: 3
+  start_period: 10s
+  start_interval: 3s
 
 x-ping-php: &ping-php
   test:
@@ -26,8 +27,9 @@ x-ping-php: &ping-php
     - "exit(@file_get_contents('http://127.0.0.1:8000/up', false, stream_context_create(['http' => ['timeout' => 3]])) === false ? 1 : 0);"
   interval: 30s
   timeout: 5s
-  retries: 5
-  start_period: 40s
+  retries: 3
+  start_period: 15s
+  start_interval: 3s
 
 name: prod
 
@@ -46,7 +48,7 @@ services:
     healthcheck: *ping
     deploy:
       resources:
-        limits: {cpus: "1.0", memory: 1g}
+        limits: {memory: 1g}
     networks: [prod-app, app-infra]
 
   backend-ml:
@@ -58,7 +60,7 @@ services:
     healthcheck: *ping
     deploy:
       resources:
-        limits: {cpus: "2.0", memory: 2g}
+        limits: {memory: 2.2g}
     networks: [prod-app]
 
   php-frontend:
@@ -77,7 +79,7 @@ services:
     deploy:
       resources:
         limits: {cpus: "1.0", memory: 512m}
-    networks: [prod-app, web-server]
+    networks: [prod-app, web-server, app-infra]
 
 networks:
   prod-app:
