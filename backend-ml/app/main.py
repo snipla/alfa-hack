@@ -42,10 +42,13 @@ app = FastAPI(
     title="AlfaHack ML",
     lifespan=lifespan,
     version="0.1.0",
+    docs_url=None,
+    redoc_url=None,
     openapi_url="/openapi.json" if settings.DEV else None,
 )
 
-add_scalar_reference(app, route="/docs", theme=Theme.PURPLE)
+if settings.DEV:
+    add_scalar_reference(app, route="/docs", theme=Theme.PURPLE)
 
 app.add_middleware(
     CORSMiddleware,

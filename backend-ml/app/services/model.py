@@ -35,7 +35,6 @@ type ModelInput = (
 
 
 def _normalize_cat_value(value: Any) -> str:
-    """Normalize categorical feature value to the string representation expected by CatBoost."""
     if isinstance(value, bool):
         return "1" if value else "0"
     if isinstance(value, float) and value.is_integer():
@@ -44,8 +43,6 @@ def _normalize_cat_value(value: Any) -> str:
 
 
 class CatBoostModelService:
-    """High-performance inference service for CatBoostClassifier (model-test.cbm)."""
-
     __slots__ = (
         "_cat_feature_indices",
         "_cat_feature_names",
@@ -98,7 +95,6 @@ class CatBoostModelService:
         return self._cat_feature_names
 
     def load(self, *, warmup: bool = True) -> None:
-        """Load the .cbm model from disk into memory and optionally warm up C++ buffers."""
         if not self._model_path.is_file():
             raise ModelLoadError(f"Model file not found at: {self._model_path}")
 
@@ -112,7 +108,7 @@ class CatBoostModelService:
             ) from exc
 
         self._model = model
-        self._feature_names = tuple(model.feature_names_)
+        self._feature_names = tuple(model.feature_names_ or ())
         self._cat_feature_indices = tuple(model.get_cat_feature_indices())
         self._cat_feature_names = frozenset(
             self._feature_names[idx] for idx in self._cat_feature_indices
@@ -130,7 +126,6 @@ class CatBoostModelService:
         )
 
     def _warmup(self) -> None:
-        """Execute a dummy single-row pass to warm up CatBoost internal structures."""
         dummy_row = [
             "0" if idx in self._cat_feature_indices else 0.0
             for idx in range(len(self._feature_names))
@@ -150,7 +145,6 @@ class CatBoostModelService:
         *,
         log_transformed: bool,
     ) -> list[Any]:
-        """Extract a single feature row in exact model column order without DataFrame overhead."""
         mapping: Mapping[str, Any] = (
             record.to_feature_dict()
             if isinstance(record, CreditScoringFeatures)
@@ -182,7 +176,6 @@ class CatBoostModelService:
         *,
         log_transformed: bool = True,
     ) -> Pool:
-        """Convert supported input formats into an optimized CatBoost Pool."""
         self._ensure_loaded()
         cat_indices_list = list(self._cat_feature_indices)
 
@@ -223,7 +216,9 @@ class CatBoostModelService:
                 test_data, (str, bytes)
             ):
                 if not test_data:
-                    raise ModelInferenceError("Input test_data sequence cannot be empty.")
+                    raise ModelInferenceError(
+                        "Input test_data sequence cannot be empty."
+                    )
                 first = test_data[0]
                 if isinstance(first, (CreditScoringFeatures, Mapping)):
                     rows = [
@@ -250,7 +245,6 @@ class CatBoostModelService:
         log_transformed: bool = True,
         thread_count: int | None = None,
     ) -> list[int]:
-        """Run class prediction (0 or 1) on test_data."""
         pool = self._build_pool(test_data, log_transformed=log_transformed)
         threads = thread_count or self._thread_count
         try:
@@ -266,7 +260,6 @@ class CatBoostModelService:
         log_transformed: bool = True,
         thread_count: int | None = None,
     ) -> list[tuple[float, float]]:
-        """Run probability prediction [(prob_class_0, prob_class_1), ...] on test_data."""
         pool = self._build_pool(test_data, log_transformed=log_transformed)
         threads = thread_count or self._thread_count
         try:
@@ -283,7 +276,6 @@ class CatBoostModelService:
         *,
         log_transformed: bool = True,
     ) -> PredictionResult:
-        """Predict class and probabilities for a single feature record (optimized with thread_count=1)."""
         pool = self._build_pool(features, log_transformed=log_transformed)
         try:
             probs = self._model.predict_proba(pool, thread_count=1)[0]
@@ -370,7 +362,6 @@ async def model_lifespan(
     *,
     thread_count: int = 1,
 ) -> AsyncGenerator[dict[str, Any], None]:
-    """FastAPI lifespan context manager that loads and warms up the CatBoost model once at startup."""
     service = CatBoostModelService(
         model_path=model_path,
         thread_count=thread_count,
