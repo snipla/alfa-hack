@@ -40,7 +40,7 @@ class RequestForm
                         ->maxValue(10_000_000)
                         ->step(100_000)
                         ->helperText('Введите сумму от 10 000 до 10 000 000 ₽'),
-                    Select::make('target')
+                    Select::make('borrower')
                         ->required()
                         ->label('Заёмщик')
                         ->preload()
@@ -52,7 +52,7 @@ class RequestForm
                         ])->options(Request::BORROWERS)
                         ->helperText('Выберите должность заёмщика или введите свой вариант')
                         ->default('ceo'),
-                    Select::make('borrower')
+                    Select::make('target')
                         ->required()
                         ->label('Цель кредитования')
                         ->options(Request::CREDIT_TARGETS)
