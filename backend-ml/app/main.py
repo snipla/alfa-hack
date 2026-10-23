@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from scalar_fastapi import Theme, add_scalar_reference
 
 from app.routers import system
 from app.services.model import model_lifespan
@@ -41,10 +42,10 @@ app = FastAPI(
     title="AlfaHack ML",
     lifespan=lifespan,
     version="0.1.0",
-    docs_url="/docs" if settings.DEV else None,
-    redoc_url="/redoc" if settings.DEV else None,
     openapi_url="/openapi.json" if settings.DEV else None,
 )
+
+add_scalar_reference(app, route="/docs", theme=Theme.PURPLE)
 
 app.add_middleware(
     CORSMiddleware,

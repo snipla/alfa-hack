@@ -1,12 +1,15 @@
-# Base install composer and php
 ARG PHP_VERSION=8.4
 FROM php:${PHP_VERSION}-cli AS base
 
 ARG PHP_EXTENSIONS="intl zip opcache pcntl pdo_mysql redis swoole"
 
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
     && apt-get upgrade -y --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs
 
 COPY --from=ghcr.io/mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
@@ -19,7 +22,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV COMPOSER_NO_INTERACTION=1
 ENV COMPOSER_CACHE_DIR=/root/.cache/composer
 
-COPY composer.json composer.lock ./
+COPY composer.json composer.lock package.json package-lock.json* ./
 
 # Running app for develop in live-mode
 FROM base AS development
@@ -31,6 +34,9 @@ RUN cp "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 RUN --mount=type=cache,target=/root/.cache/composer \
     composer install --no-scripts --no-autoloader
 
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
+
 COPY . .
 
 RUN --mount=type=cache,target=/root/.cache/composer \
@@ -38,7 +44,7 @@ RUN --mount=type=cache,target=/root/.cache/composer \
     && php artisan package:discover --ansi \
     && php artisan filament:assets \
     && php artisan make:filament-theme \
-    && php artisan optimize:clear
+    && CACHE_STORE=array php artisan optimize:clear
 
 EXPOSE 8000
 
@@ -52,6 +58,10 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 RUN --mount=type=cache,target=/root/.cache/composer \
     composer install --no-dev --no-scripts --no-autoloader
 
+
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
+
 COPY . .
 
 RUN --mount=type=cache,target=/root/.cache/composer \
@@ -60,7 +70,7 @@ RUN --mount=type=cache,target=/root/.cache/composer \
     && php artisan package:discover --ansi \
     && php artisan make:filament-theme \
     && php artisan filament:assets \
-    && php artisan optimize:clear \
+    && CACHE_STORE=array php artisan optimize:clear \
     && chown -R www-data:www-data storage bootstrap/cache public
 
 USER www-data
