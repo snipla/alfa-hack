@@ -11,7 +11,7 @@ from fastapi import Depends, Request
 
 
 def get_model_service(request: Request) -> CatBoostModelService:
-    return request.app.state.model_service
+    return request.state.model_service
 
 
 ModelService = Annotated[CatBoostModelService, Depends(get_model_service)]
