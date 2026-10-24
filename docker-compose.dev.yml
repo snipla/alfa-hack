@@ -10,9 +10,10 @@ x-ping: &ping
     - -c
     - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/system/ping', timeout=3).read()"
   interval: 30s
-  timeout: 5s
-  retries: 5
+  timeout: 3s
+  retries: 3
   start_period: 10s
+  start_interval: 2s
 
 x-ping-php: &ping-php
   test:
@@ -21,14 +22,15 @@ x-ping-php: &ping-php
     - -r
     - "exit(@file_get_contents('http://127.0.0.1:8000/up', false, stream_context_create(['http' => ['timeout' => 3]])) === false ? 1 : 0);"
   interval: 30s
-  timeout: 5s
-  retries: 5
-  start_period: 10s
+  timeout: 3s
+  retries: 3
+  start_period: 15s
+  start_interval: 2s
 
 name: dev
 
 services:
-  backend: 
+  backend-dev: 
     <<: *dev
     env_file:
       - ./backend/.env.dev
@@ -43,7 +45,7 @@ services:
         - {action: rebuild, path: ./backend/.env.dev}
     healthcheck: *ping
     depends_on:
-      backend-ml:
+      backend-ml-dev:
         condition: service_healthy
     volumes:
       - /opt/alfa/dev/migrations:/app/.alembic/versions
@@ -51,7 +53,7 @@ services:
       - dev-app
       - app-infra
 
-  backend-ml:
+  backend-ml-dev:
     <<: *dev
     env_file:
       - ./backend-ml/.env.dev
@@ -59,16 +61,17 @@ services:
       context: ./backend-ml
       target: development
     develop:
-    watch:
-      - {action: sync, path: ./backend-ml, target: /app, ignore: [.venv/, __pycache__/, .pytest_cache/]}
-      - {action: rebuild, path: ./backend-ml/pyproject.toml}
-      - {action: rebuild, path: ./backend-ml/uv.lock}
-      - {action: rebuild, path: ./backend-ml/.env.dev}
+      watch:
+        - {action: sync, path: ./backend-ml, target: /app, ignore: [.venv/, __pycache__/, .pytest_cache/]}
+        - {action: rebuild, path: ./backend-ml/pyproject.toml}
+        - {action: rebuild, path: ./backend-ml/uv.lock}
+        - {action: rebuild, path: ./backend-ml/.env.dev}
     healthcheck: *ping
     networks:
       - dev-app
+      - web-server
 
-  php-frontend:
+  php-frontend-dev:
     <<: *dev
     env_file:
       - ./frontend/.env.dev
@@ -77,17 +80,18 @@ services:
       target: development
     develop:
       watch:
-        - {action: sync, path: ./frontend, target: /app, ignore: [vendor/, node_modules/, storage/logs/, storage/framework/, bootstrap/cache/]}
+        - {action: sync, path: ./frontend, target: /app, ignore: [vendor/, node_modules/, storage/logs/, storage/framework/, bootstrap/cache/, public/css/filament/, public/js/filament/, public/fonts/filament/]}
         - {action: rebuild, path: ./frontend/composer.json}
         - {action: rebuild, path: ./frontend/composer.lock}
         - {action: rebuild, path: ./frontend/.env.dev}
     healthcheck: *ping-php
     depends_on:
-      backend:
+      backend-dev:
         condition: service_healthy
     networks:
       - dev-app
       - web-server
+      - app-infra
 
 networks:
   dev-app:

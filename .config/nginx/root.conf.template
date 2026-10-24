@@ -1,5 +1,5 @@
 server {
-    server_name shtrmx.ru;
+    server_name ${DOMAIN};
     listen 443 ssl reuseport;
     listen [::]:443 ssl reuseport;
     http2 on;
@@ -8,6 +8,6 @@ server {
     include /etc/nginx/conf.d/snippets/security-headers.conf;
 
     location / {
-        return 301 https://app.shtrmx.ru$request_uri;
+        return 301 https://app.${DOMAIN}$request_uri;
     }
 }

@@ -6,11 +6,8 @@ class Settings(BaseSettings):
     SYSTEM_API_KEY: SecretStr
     CORS_ORIGINS: list[str]
 
-    ML_API_URL: str = "http://backend-ml:8000"
-    DATABASE_URL: MySQLDsn = MySQLDsn(
-        "mysql+asyncmy://user:password@localhost:3306/database"
-    )
-
+    ML_API_URL: str
+    DATABASE_URL: MySQLDsn
     DEV: bool
 
     model_config = SettingsConfigDict(

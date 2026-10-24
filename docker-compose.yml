@@ -13,7 +13,7 @@ services:
   db:
     <<: *base
     image: mariadb:${MARIADB_TAG:?}
-    container_name: frisbee-db
+    container_name: alfa-db
     cap_drop: [ALL]
     cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
     command:
@@ -27,11 +27,11 @@ services:
       MARIADB_ROOT_PASSWORD_FILE: /run/secrets/mariadb_root_password
       MARIADB_USER: ${MARIADB_USER:?}
       MARIADB_PASSWORD_FILE: /run/secrets/mariadb_password
-      MARIADB_DATABASE: frisbee_prod
+      MARIADB_DATABASE: alfa_prod
     secrets: [mariadb_root_password, mariadb_password]
     volumes:
       - /opt/alfa/mariadb:/var/lib/mysql
-      - /opt/alfa/conf/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - /opt/alfa/config/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
@@ -40,7 +40,7 @@ services:
       start_period: 20s
     deploy:
       resources:
-        limits: {cpus: "2.0", memory: 1.5g}
+        limits: {memory: 1.5g}
     networks: 
       - app-infra
     ports:
@@ -50,6 +50,3 @@ networks:
   app-infra:
     name: alfahack-infra
     driver: bridge
-  web-server:
-    name: alfahack-web
-    external: true

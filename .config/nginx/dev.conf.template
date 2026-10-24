@@ -1,5 +1,5 @@
 server {
-    server_name dev.shtrmx.ru;
+    server_name dev.${DOMAIN};
     listen 443 ssl;
     listen [::]:443 ssl;
     http2 on;
@@ -11,10 +11,9 @@ server {
 
     resolver 127.0.0.11 valid=5s;
 
-
     location / {
-        set $php_frontend_prod "http://dev-php-frontend-1:8000";
-        proxy_pass $php_frontend_prod;
+        set $php_frontend_dev "http://dev-php-frontend-dev-1:8000";
+        proxy_pass $php_frontend_dev;
         include /etc/nginx/conf.d/snippets/proxy-params.conf;
         include /etc/nginx/conf.d/snippets/websocket-params.conf;
     }
