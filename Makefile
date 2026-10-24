@@ -4,7 +4,7 @@
 	dev-cli dev-back-cli dev-front-cli \
 	prod-build prod-down \
 	prod-cli prod-back-cli prod-front-cli\
-	sync sync-restart sync-stop sync-status sync-monitor \
+	sync sync-restart sync-reset sync-stop sync-status sync-monitor \
 	nginx-up nginx-stop nginx-down nginx-hard-restart nginx-restart nginx-reload nginx-test nginx-logs nginx-shell nginx-status nginx-rebuild
 
 -include .env
@@ -136,9 +136,17 @@ sync:
 				$(REMOTE_ENV_HOST)/$$svc; \
 		fi; \
 	done
+	@if mutagen sync list --label-selector=$(MUTAGEN_LABEL) 2>/dev/null | grep -q "Status: Halted"; then \
+		mutagen sync reset --label-selector=$(MUTAGEN_LABEL); \
+	else \
+		mutagen sync resume --label-selector=$(MUTAGEN_LABEL) 2>/dev/null || true; \
+	fi
 	$(MAKE) sync-monitor
 
 sync-restart: sync-stop sync
+
+sync-reset:
+	mutagen sync reset --label-selector=$(MUTAGEN_LABEL)
 
 sync-stop:
 	-mutagen sync terminate --label-selector=$(MUTAGEN_LABEL)
