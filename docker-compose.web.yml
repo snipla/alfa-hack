@@ -5,16 +5,18 @@ services:
     image: nginx:alpine
     container_name: nginx-proxy
     restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-shtrmx.ru}
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - /opt/alfa/conf/nginx:/etc/nginx/conf.d:ro
-      - /opt/alfa/certs:/etc/nginx/certs:ro
+      - /opt/alfa/nginx:/etc/nginx/templates:ro
+      - /opt/alfa/nginx/certs:/etc/nginx/certs:ro
     networks:
-      - web-server
+      - alfahack-web
 
 networks:
-  web-server:
+  alfahack-web:
     name: alfahack-web
     driver: bridge

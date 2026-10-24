@@ -1,0 +1,20 @@
+server {
+    server_name dev-ml.${DOMAIN};
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+
+    client_max_body_size 25m;
+
+    include /etc/nginx/conf.d/snippets/ssl-params.conf;
+    include /etc/nginx/conf.d/snippets/security-headers.conf;
+
+    resolver 127.0.0.11 valid=5s;
+
+    location / {
+        set $ml_dev "http://dev-backend-ml-dev-1:8000";
+        proxy_pass $ml_dev;
+        include /etc/nginx/conf.d/snippets/proxy-params.conf;
+        include /etc/nginx/conf.d/snippets/websocket-params.conf;
+    }
+}

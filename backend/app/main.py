@@ -22,7 +22,7 @@ logger.info(
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[dict[str, Any], None]:
+async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any], None]:
     async with AsyncExitStack() as stack:
         state: dict[str, Any] = {}
 
@@ -50,7 +50,7 @@ app.add_middleware(
     expose_headers=["Content-Range", "Accept-Ranges"],
 )
 
-router = APIRouter(prefix="/")
+router = APIRouter(prefix="/api")
 router.include_router(system.router)
 
 app.include_router(router)
