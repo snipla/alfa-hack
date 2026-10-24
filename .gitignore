@@ -129,4 +129,4 @@ multirun/
 
 
 # --- ML Data ---
-**/data/*
+ml/data/*.csv
