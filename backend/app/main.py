@@ -3,11 +3,11 @@ from collections.abc import AsyncGenerator
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Any
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.engine import database_lifespan
-from app.routers import system
+from app.domains.system.router import router as system_router
 from app.shared.config import settings
 from app.shared.logging import init_app_logging
 
@@ -22,7 +22,7 @@ logger.info(
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any], None]:
+async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
     async with AsyncExitStack() as stack:
         state: dict[str, Any] = {}
 
@@ -50,7 +50,4 @@ app.add_middleware(
     expose_headers=["Content-Range", "Accept-Ranges"],
 )
 
-router = APIRouter(prefix="/api")
-router.include_router(system.router)
-
-app.include_router(router)
+app.include_router(system_router, prefix="/api")

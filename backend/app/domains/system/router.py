@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.schemas.system import PingResponse
+from app.domains.system.schemas import PingResponse
 
 router = APIRouter(prefix="/system", tags=["system"])
 

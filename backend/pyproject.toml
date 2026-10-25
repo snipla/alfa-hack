@@ -27,3 +27,9 @@ project-includes = [
     "**/*.py*",
     "**/*.ipynb",
 ]
+
+[dependency-groups]
+dev = [
+    "aiosqlite>=0.21.0",
+    "pytest-asyncio>=1.2.0",
+]
