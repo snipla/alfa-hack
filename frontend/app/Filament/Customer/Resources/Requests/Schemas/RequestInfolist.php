@@ -18,15 +18,21 @@ class RequestInfolist
             ->components([
                 Section::make('Входные данные')
                     ->schema([
-                        TextEntry::make('user_id')
-                            ->numeric(),
-                        TextEntry::make('credit_info')
-                            ->placeholder('-')
-                            ->columnSpanFull(),
+                        TextEntry::make('target')
+                            ->label('Цель кредитования')
+                            ->formatStateUsing(fn($record) => match ($record->target) {
+                                'increasing_working_capital' => 'Пополнения оборотных средств',
+                                'acquisition_equipment. ' => 'Приобретение оборудования',
+                                'commercial_real_estate. ' => 'Коммерческая недвижимость',
+                            }),
+                        TextEntry::make('borrower')
+                            ->label('Кредитор'),
                         TextEntry::make('created_at')
+                            ->label('Создана')
                             ->dateTime()
                             ->placeholder('-'),
                         TextEntry::make('updated_at')
+                            ->label('Обновлена')
                             ->dateTime()
                             ->placeholder('-'),
                     ]),
