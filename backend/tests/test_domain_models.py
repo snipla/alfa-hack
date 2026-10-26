@@ -2,10 +2,13 @@
 
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
+from alembic import command
 from alembic.autogenerate import compare_metadata
+from alembic.config import Config
 from alembic.migration import MigrationContext
 from sqlalchemy import CheckConstraint, event, select, text
 from sqlalchemy.dialects import mysql
@@ -38,14 +41,16 @@ async def session():
     try:
         async with engine.begin() as connection:
             await connection.run_sync(Company.__table__.create)
-            backend_tables = [
-                table
-                for table in Base.metadata.sorted_tables
-                if include_model_object(table, table.name, "table", False, None)
-            ]
-            await connection.run_sync(
-                lambda sync: Base.metadata.create_all(sync, tables=backend_tables)
-            )
+
+            # Base.metadata.create_all не проверяет сохранённую ревизию Alembic.
+            def apply_revision(sync):
+                config = Config(
+                    str(Path(__file__).resolve().parents[1] / "alembic.ini")
+                )
+                config.attributes["connection"] = sync
+                command.upgrade(config, "head")
+
+            await connection.run_sync(apply_revision)
         async with AsyncSession(engine, expire_on_commit=False) as current:
             yield current
     finally:
@@ -126,6 +131,7 @@ def test_discovery_loads_business_models_without_manual_registry():
 
 
 # @pytest.mark.parametrize("table_name", sorted(Base.metadata.tables))
+
 
 @pytest.mark.parametrize(
     "table_name",

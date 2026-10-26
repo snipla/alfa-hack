@@ -1,24 +1,37 @@
 import asyncio
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
+from pydantic import MySQLDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.model_loader import include_model_object, load_models
 from app.database.models.base import Base
-from app.shared.config import settings
+
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option(
-    "sqlalchemy.url",
-    str(settings.DATABASE_URL).replace("%", "%%"),
-)
+
+class MigrationSettings(BaseSettings):
+    DATABASE_URL: MySQLDsn
+    model_config = SettingsConfigDict(case_sensitive=True, extra="ignore")
+
+
+# Переданное соединение позволяет тестировать upgrade/downgrade без общей БД.
+provided_connection = config.attributes.get("connection")
+if provided_connection is None:
+    url = config.attributes.get("database_url")
+    if url is None:
+        backend_path = Path(config.config_file_name).resolve().parent
+        url = str(MigrationSettings(_env_file=backend_path / ".env").DATABASE_URL)
+    config.set_main_option("sqlalchemy.url", str(url).replace("%", "%%"))
 
 load_models()
 target_metadata = Base.metadata
@@ -43,8 +56,6 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    """Configure and run migrations using a database connection."""
-
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
@@ -57,8 +68,6 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_migrations_online() -> None:
-    """Run migrations using an asynchronous database connection."""
-
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -74,5 +83,7 @@ async def run_migrations_online() -> None:
 
 if context.is_offline_mode():
     run_migrations_offline()
+elif provided_connection is not None:
+    do_run_migrations(provided_connection)
 else:
     asyncio.run(run_migrations_online())
